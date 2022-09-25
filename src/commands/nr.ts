@@ -5,9 +5,26 @@ import { dump, load } from '../storage'
 import { parseNr } from '../parse'
 import { getPackageJSON } from '../fs'
 import { runCli } from '../runner'
+import { createSyncAutocomplete } from '../autocomplete'
 
 runCli(async (agent, args, ctx) => {
   const storage = await load()
+  const pkg = getPackageJSON(ctx?.cwd)
+  const scripts = pkg.scripts || {}
+  const scriptsInfo = pkg['scripts-info'] || {}
+
+  const names = Object.entries(scripts) as [string, string][]
+
+  createSyncAutocomplete('nr', {
+    actions: [
+      {
+        action: 'script',
+        recommend: () => {
+          return names.map(v => v[0])
+        },
+      },
+    ],
+  })
 
   if (args[0] === '-') {
     if (!storage.lastRunCommand) {
@@ -19,11 +36,6 @@ runCli(async (agent, args, ctx) => {
 
   if (args.length === 0) {
     // support https://www.npmjs.com/package/npm-scripts-info conventions
-    const pkg = getPackageJSON(ctx?.cwd)
-    const scripts = pkg.scripts || {}
-    const scriptsInfo = pkg['scripts-info'] || {}
-
-    const names = Object.entries(scripts) as [string, string][]
 
     if (!names.length)
       return

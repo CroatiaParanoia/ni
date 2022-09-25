@@ -4,6 +4,8 @@ import { AGENTS } from './agents'
 import { exclude } from './utils'
 import type { Runner } from './runner'
 
+const autocompleteArgsList = ['--compzsh', '--compbash', '--compgen']
+
 export function getCommand(
   agent: Agent,
   command: Command,
@@ -11,6 +13,9 @@ export function getCommand(
 ) {
   if (!(agent in AGENTS))
     throw new Error(`Unsupported agent "${agent}"`)
+
+  if (args.find(v => autocompleteArgsList.includes(v)))
+    return
 
   const c = AGENTS[agent][command]
 
